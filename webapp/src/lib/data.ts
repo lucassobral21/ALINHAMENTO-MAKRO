@@ -9,7 +9,7 @@ import type {
   Status,
   Ticket,
 } from "./types";
-import { mondayOf, toISO } from "./dates";
+import { addDays, mondayOf, toISO } from "./dates";
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message);
@@ -29,9 +29,10 @@ export async function fetchOrCreateAppSettings(
   if (existing.error) throw new Error(existing.error.message);
   if (existing.data) return existing.data as AppSettings;
 
+  const monday = toISO(mondayOf(new Date()));
   const created = await supabase
     .from("app_settings")
-    .insert({ user_id: userId, report_name: "", week_start: toISO(mondayOf(new Date())) })
+    .insert({ user_id: userId, report_name: "", week_start: monday, week_end: addDays(monday, 4) })
     .select("*")
     .single();
   return must(created);
@@ -40,7 +41,7 @@ export async function fetchOrCreateAppSettings(
 export async function updateAppSettings(
   supabase: SupabaseClient,
   userId: string,
-  patch: Partial<Pick<AppSettings, "report_name" | "week_start" | "company_logo_url">>
+  patch: Partial<Pick<AppSettings, "report_name" | "week_start" | "week_end" | "company_logo_url">>
 ): Promise<void> {
   const res = await supabase.from("app_settings").update(patch).eq("user_id", userId);
   if (res.error) throw new Error(res.error.message);
@@ -278,6 +279,7 @@ export async function closeWeek(
     weekStart: string;
     snapshot: unknown;
     nextWeekStart: string;
+    nextWeekEnd: string;
   }
 ): Promise<string> {
   const res = await supabase.rpc("close_week", {
@@ -287,6 +289,7 @@ export async function closeWeek(
     p_week_start: args.weekStart,
     p_snapshot: args.snapshot,
     p_next_week_start: args.nextWeekStart,
+    p_next_week_end: args.nextWeekEnd,
   });
   if (res.error) throw new Error(res.error.message);
   return res.data as string;

@@ -96,6 +96,15 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       alertErr(e);
     }
   }
+  async function onWeekEndChange(weekEnd: string) {
+    if (!settings || weekEnd === settings.week_end) return;
+    setSettings({ ...settings, week_end: weekEnd });
+    try {
+      await data.updateAppSettings(supabase, settings.user_id, { week_end: weekEnd });
+    } catch (e) {
+      alertErr(e);
+    }
+  }
 
   // ── Projects ──
   async function addProject() {
@@ -310,10 +319,11 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
     setClosePending(true);
     try {
       const weekStart = settings.week_start;
-      const fridayISO = addDays(weekStart, 4);
-      const weekLabel = `Semana de ${fmtBR(weekStart)} a ${fmtBR(fridayISO)}`;
-      const dateStr = fmtBR(fridayISO);
+      const weekEnd = settings.week_end;
+      const weekLabel = `Semana de ${fmtBR(weekStart)} a ${fmtBR(weekEnd)}`;
+      const dateStr = fmtBR(weekEnd);
       const nextWeekStart = addDays(weekStart, 7);
+      const nextWeekEnd = addDays(weekEnd, 7);
       const snapshot = { projects: projects.map((p) => ({ ...p })), tickets };
 
       const id = await data.closeWeek(supabase, {
@@ -323,6 +333,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
         weekStart,
         snapshot,
         nextWeekStart,
+        nextWeekEnd,
       });
 
       const entry: HistoryWeek = {
@@ -340,7 +351,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       setHistory([entry, ...history]);
       setProjects(projects.map((p) => ({ ...p, demands: [], monday_pct: 0, friday_pct: 0, general_notes: "" })));
       setTickets([]);
-      setSettings({ ...settings, week_start: nextWeekStart });
+      setSettings({ ...settings, week_start: nextWeekStart, week_end: nextWeekEnd });
       setShowCloseConfirm(false);
       setView("historico");
       setViewingHistoryId(null);
@@ -359,7 +370,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       const dateStr = viewingHistoryId
         ? history.find((h) => h.id === viewingHistoryId)?.date_str
         : settings
-        ? fmtBR(addDays(settings.week_start, 4))
+        ? fmtBR(settings.week_end)
         : "";
       await exportReportPdf(reportRef.current, `alinhamento-semanal-${(dateStr || "").replace(/\//g, "-")}.pdf`);
     } catch (e) {
@@ -377,8 +388,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
     );
   }
 
-  const fridayISO = addDays(settings.week_start, 4);
-  const weekLabel = `Semana de ${fmtBR(settings.week_start)} a ${fmtBR(fridayISO)}`;
+  const weekLabel = `Semana de ${fmtBR(settings.week_start)} a ${fmtBR(settings.week_end)}`;
 
   const viewingHistory = !!viewingHistoryId;
   const historyEntry = viewingHistory ? history.find((h) => h.id === viewingHistoryId) : null;
@@ -393,7 +403,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
     reportProjects = projects.map((p) => buildReportProject(p, p.demands, settings.week_start));
     reportCsm = buildCsmSummary(tickets);
     reportName = settings.report_name;
-    reportDateStr = fmtBR(fridayISO);
+    reportDateStr = fmtBR(settings.week_end);
   }
 
   return (
@@ -453,7 +463,14 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
             onChange={(e) => e.target.value && onWeekStartChange(e.target.value)}
             style={{ fontSize: 16 }}
           />
-          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>a {fmtBR(fridayISO)}</span>
+          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>a</span>
+          <input
+            type="date"
+            className="ds-input"
+            value={settings.week_end}
+            onChange={(e) => e.target.value && onWeekEndChange(e.target.value)}
+            style={{ fontSize: 16 }}
+          />
         </div>
       </div>
 

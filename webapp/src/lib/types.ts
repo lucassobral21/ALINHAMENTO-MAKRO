@@ -63,6 +63,7 @@ export interface AppSettings {
   user_id: string;
   report_name: string;
   week_start: string;
+  week_end: string;
   company_logo_url: string | null;
   updated_at: string;
 }

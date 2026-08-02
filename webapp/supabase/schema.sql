@@ -7,9 +7,14 @@ create table if not exists app_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   report_name text not null default '',
   week_start date not null default date_trunc('week', current_date)::date,
+  week_end date not null default (date_trunc('week', current_date)::date + 4),
   company_logo_url text,
   updated_at timestamptz not null default now()
 );
+
+alter table app_settings add column if not exists week_end date;
+update app_settings set week_end = week_start + 4 where week_end is null;
+alter table app_settings alter column week_end set not null;
 
 -- ── Projetos ──
 create table if not exists projects (
@@ -140,13 +145,16 @@ create policy "logos own delete" on storage.objects for delete to authenticated
 
 -- ── "Fechar Semana": arquiva a semana atual e zera demandas/chamados/observações ──
 -- Roda tudo numa única transação no banco (atômico) — se algo falhar, nada é alterado.
+drop function if exists close_week(text, text, text, date, jsonb, date);
+
 create or replace function close_week(
   p_week_label text,
   p_report_name text,
   p_date_str text,
   p_week_start date,
   p_snapshot jsonb,
-  p_next_week_start date
+  p_next_week_start date,
+  p_next_week_end date
 ) returns uuid
 language plpgsql
 security definer
@@ -169,10 +177,10 @@ begin
 
   update projects set general_notes = '', monday_pct = 0, friday_pct = 0 where user_id = v_uid;
 
-  update app_settings set week_start = p_next_week_start, updated_at = now() where user_id = v_uid;
+  update app_settings set week_start = p_next_week_start, week_end = p_next_week_end, updated_at = now() where user_id = v_uid;
 
   return v_id;
 end;
 $$;
 
-grant execute on function close_week(text, text, text, date, jsonb, date) to authenticated;
+grant execute on function close_week(text, text, text, date, jsonb, date, date) to authenticated;
