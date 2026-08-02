@@ -64,6 +64,17 @@ create table if not exists logo_gallery (
   created_at timestamptz not null default now()
 );
 
+-- ── Presets de projetos favoritados (ícone, nome, início e fim reaproveitáveis) ──
+create table if not exists project_presets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  logo_url text,
+  start_date date,
+  end_date date,
+  created_at timestamptz not null default now()
+);
+
 -- ── Histórico de semanas fechadas (snapshot completo em JSON) ──
 create table if not exists history_weeks (
   id uuid primary key default gen_random_uuid(),
@@ -83,6 +94,7 @@ alter table projects enable row level security;
 alter table demands enable row level security;
 alter table tickets enable row level security;
 alter table logo_gallery enable row level security;
+alter table project_presets enable row level security;
 alter table history_weeks enable row level security;
 
 drop policy if exists "own rows" on app_settings;
@@ -99,6 +111,9 @@ create policy "own rows" on tickets for all using (auth.uid() = user_id) with ch
 
 drop policy if exists "own rows" on logo_gallery;
 create policy "own rows" on logo_gallery for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "own rows" on project_presets;
+create policy "own rows" on project_presets for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "own rows" on history_weeks;
 create policy "own rows" on history_weeks for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

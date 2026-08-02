@@ -49,6 +49,16 @@ export interface LogoGalleryItem {
   created_at: string;
 }
 
+export interface ProjectPreset {
+  id: string;
+  user_id: string;
+  name: string;
+  logo_url: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string;
+}
+
 export interface AppSettings {
   user_id: string;
   report_name: string;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { signOut } from "@/app/login/actions";
 import * as data from "@/lib/data";
-import type { AppSettings, Demand, HistoryWeek, LogoGalleryItem, Project, Status, Ticket } from "@/lib/types";
+import type { AppSettings, Demand, HistoryWeek, LogoGalleryItem, Project, ProjectPreset, Status, Ticket } from "@/lib/types";
 import { addDays, fmtBR } from "@/lib/dates";
 import { buildCsmSummary, buildReportProject } from "@/lib/report";
 import { exportReportPdf } from "@/lib/pdf";
@@ -25,10 +25,12 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
   const [projects, setProjects] = useState<ProjectWithDemands[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [gallery, setGallery] = useState<LogoGalleryItem[]>([]);
+  const [presets, setPresets] = useState<ProjectPreset[]>([]);
   const [history, setHistory] = useState<HistoryWeek[]>([]);
   const [view, setView] = useState<View>("painel");
   const [viewingHistoryId, setViewingHistoryId] = useState<string | null>(null);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showPresetMenu, setShowPresetMenu] = useState(false);
   const [closePending, setClosePending] = useState(false);
   const [pdfPending, setPdfPending] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -41,12 +43,13 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [s, projectRows, demandRows, ticketRows, galleryRows, historyRows] = await Promise.all([
+      const [s, projectRows, demandRows, ticketRows, galleryRows, presetRows, historyRows] = await Promise.all([
         data.fetchOrCreateAppSettings(supabase, user.id),
         data.fetchProjects(supabase),
         data.fetchDemands(supabase),
         data.fetchTickets(supabase),
         data.fetchGallery(supabase),
+        data.fetchPresets(supabase),
         data.fetchHistoryList(supabase),
       ]);
       if (cancelled) return;
@@ -60,6 +63,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       setProjects(grouped);
       setTickets(ticketRows);
       setGallery(galleryRows);
+      setPresets(presetRows);
       setHistory(historyRows);
       setLoading(false);
     })();
@@ -96,9 +100,49 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
   // ── Projects ──
   async function addProject() {
     if (!settings) return;
+    setShowPresetMenu(false);
     try {
       const p = await data.createProject(supabase, settings.user_id, projects.length);
       setProjects([...projects, { ...p, demands: [] }]);
+    } catch (e) {
+      alertErr(e);
+    }
+  }
+  async function addProjectFromPreset(preset: ProjectPreset) {
+    if (!settings) return;
+    setShowPresetMenu(false);
+    try {
+      const p = await data.createProject(supabase, settings.user_id, projects.length);
+      const patch: Partial<Project> = {
+        name: preset.name,
+        logo_url: preset.logo_url,
+        start_date: preset.start_date,
+        end_date: preset.end_date,
+      };
+      await data.updateProject(supabase, p.id, patch);
+      setProjects([...projects, { ...p, ...patch, demands: [] }]);
+    } catch (e) {
+      alertErr(e);
+    }
+  }
+  async function saveProjectAsPreset(p: ProjectWithDemands) {
+    if (!settings) return;
+    try {
+      await data.upsertPreset(supabase, settings.user_id, {
+        name: p.name,
+        logo_url: p.logo_url,
+        start_date: p.start_date,
+        end_date: p.end_date,
+      });
+      setPresets(await data.fetchPresets(supabase));
+    } catch (e) {
+      alertErr(e);
+    }
+  }
+  async function removePreset(id: string) {
+    try {
+      await data.deletePreset(supabase, id);
+      setPresets((prev) => prev.filter((pr) => pr.id !== id));
     } catch (e) {
       alertErr(e);
     }
@@ -437,11 +481,62 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, position: "relative" }}>
             <div className="ds-kicker">Projetos</div>
-            <button className="btn-primary" onClick={addProject}>
+            <button className="btn-primary" onClick={() => setShowPresetMenu((v) => !v)}>
               + Novo projeto
             </button>
+            {showPresetMenu ? (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 19 }} onClick={() => setShowPresetMenu(false)} />
+                <div
+                  className="ds-card"
+                  style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, padding: 8, zIndex: 20, minWidth: 260, maxHeight: 320, overflowY: "auto" }}
+                >
+                  <button
+                    className="btn-secondary"
+                    onClick={addProject}
+                    style={{ width: "100%", textAlign: "left", marginBottom: presets.length ? 6 : 0 }}
+                  >
+                    Em branco
+                  </button>
+                  {presets.map((preset) => (
+                    <div
+                      key={preset.id}
+                      onClick={() => addProjectFromPreset(preset)}
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 6px", borderRadius: 8, cursor: "pointer" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#F9FAFB")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <div style={{ width: 32, height: 32, borderRadius: 6, border: "1px solid #E5E7EB", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", background: "#fff" }}>
+                        {preset.logo_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={preset.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        ) : null}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {preset.name}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#6B7280" }}>
+                          {preset.start_date ? fmtBR(preset.start_date) : "?"} - {preset.end_date ? fmtBR(preset.end_date) : "?"}
+                        </div>
+                      </div>
+                      <button
+                        title="Remover preset"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removePreset(preset.id);
+                        }}
+                        style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: 12, padding: 4 }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </div>
 
           {projects.map((p) => (
@@ -457,6 +552,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
               onAddDemand={(draft) => addDemand(p.id, draft)}
               onUpdateDemand={(did, patch) => updateDemand(p.id, did, patch)}
               onDeleteDemand={(did) => deleteDemand(p.id, did)}
+              onSaveAsPreset={() => saveProjectAsPreset(p)}
             />
           ))}
 

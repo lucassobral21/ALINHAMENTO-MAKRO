@@ -26,6 +26,7 @@ interface Props {
   }) => void;
   onUpdateDemand: (demandId: string, patch: Partial<Demand>) => void;
   onDeleteDemand: (demandId: string) => void;
+  onSaveAsPreset: () => void;
 }
 
 function emptyDraft() {
@@ -52,8 +53,10 @@ export default function ProjectCard({
   onAddDemand,
   onUpdateDemand,
   onDeleteDemand,
+  onSaveAsPreset,
 }: Props) {
   const [draft, setDraft] = useState(emptyDraft());
+  const [presetSaved, setPresetSaved] = useState(false);
 
   const mondayPct = p.monday_pct ?? 0;
   const fridayPct = p.friday_pct ?? 0;
@@ -123,6 +126,18 @@ export default function ProjectCard({
           onChange={(e) => onUpdate({ color: e.target.value })}
           style={{ width: 32, height: 32, border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer", padding: 0 }}
         />
+        <button
+          className="btn-icon"
+          aria-label="Favoritar como preset"
+          title="Salvar nome, ícone e datas como preset reaproveitável"
+          onClick={() => {
+            onSaveAsPreset();
+            setPresetSaved(true);
+          }}
+          style={{ color: presetSaved ? "#F59E0B" : undefined }}
+        >
+          {presetSaved ? "★" : "☆"}
+        </button>
         <button className="btn-icon" aria-label="Remover projeto" onClick={onDelete}>
           ✕
         </button>

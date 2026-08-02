@@ -5,6 +5,7 @@ import type {
   HistoryWeek,
   LogoGalleryItem,
   Project,
+  ProjectPreset,
   Status,
   Ticket,
 } from "./types";
@@ -198,6 +199,50 @@ export async function upsertGalleryLogo(
 
 export async function deleteGalleryLogo(supabase: SupabaseClient, id: string): Promise<void> {
   const res = await supabase.from("logo_gallery").delete().eq("id", id);
+  if (res.error) throw new Error(res.error.message);
+}
+
+// ── Project presets (projetos favoritados) ──────────────────────
+export async function fetchPresets(supabase: SupabaseClient): Promise<ProjectPreset[]> {
+  const res = await supabase
+    .from("project_presets")
+    .select("*")
+    .order("name", { ascending: true });
+  return must(res) ?? [];
+}
+
+export async function upsertPreset(
+  supabase: SupabaseClient,
+  userId: string,
+  preset: { name: string; logo_url: string | null; start_date: string | null; end_date: string | null }
+): Promise<void> {
+  if (!preset.name.trim()) return;
+  const existing = await supabase
+    .from("project_presets")
+    .select("id")
+    .eq("user_id", userId)
+    .ilike("name", preset.name.trim())
+    .maybeSingle();
+  if (existing.data) {
+    const res = await supabase
+      .from("project_presets")
+      .update({ logo_url: preset.logo_url, start_date: preset.start_date, end_date: preset.end_date })
+      .eq("id", existing.data.id);
+    if (res.error) throw new Error(res.error.message);
+  } else {
+    const res = await supabase.from("project_presets").insert({
+      user_id: userId,
+      name: preset.name.trim(),
+      logo_url: preset.logo_url,
+      start_date: preset.start_date,
+      end_date: preset.end_date,
+    });
+    if (res.error) throw new Error(res.error.message);
+  }
+}
+
+export async function deletePreset(supabase: SupabaseClient, id: string): Promise<void> {
+  const res = await supabase.from("project_presets").delete().eq("id", id);
   if (res.error) throw new Error(res.error.message);
 }
 
