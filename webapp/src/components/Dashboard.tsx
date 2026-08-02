@@ -83,6 +83,16 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       alertErr(e);
     }
   }
+  async function onWeekStartChange(weekStart: string) {
+    if (!settings || weekStart === settings.week_start) return;
+    setSettings({ ...settings, week_start: weekStart });
+    try {
+      await data.updateAppSettings(supabase, settings.user_id, { week_start: weekStart });
+    } catch (e) {
+      alertErr(e);
+    }
+  }
+
   // ── Projects ──
   async function addProject() {
     if (!settings) return;
@@ -325,7 +335,6 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
 
   const fridayISO = addDays(settings.week_start, 4);
   const weekLabel = `Semana de ${fmtBR(settings.week_start)} a ${fmtBR(fridayISO)}`;
-  const weekTitle = `${fmtBR(settings.week_start)} - ${fmtBR(fridayISO)}`;
 
   const viewingHistory = !!viewingHistoryId;
   const historyEntry = viewingHistory ? history.find((h) => h.id === viewingHistoryId) : null;
@@ -391,7 +400,17 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       </div>
 
       <div className="no-print" style={{ padding: "24px 32px 0", maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>{weekTitle}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>Semana de</span>
+          <input
+            type="date"
+            className="ds-input"
+            value={settings.week_start}
+            onChange={(e) => e.target.value && onWeekStartChange(e.target.value)}
+            style={{ fontSize: 16 }}
+          />
+          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-.01em" }}>a {fmtBR(fridayISO)}</span>
+        </div>
       </div>
 
       {view === "painel" ? (
