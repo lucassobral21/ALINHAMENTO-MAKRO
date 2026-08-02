@@ -18,6 +18,13 @@ import CloseWeekModal from "./CloseWeekModal";
 type ProjectWithDemands = Project & { demands: Demand[] };
 type View = "painel" | "relatorio" | "historico";
 
+function mergeField(existing: string, incoming: string): string {
+  const parts = existing.split(",").map((s) => s.trim()).filter(Boolean);
+  const next = incoming.trim();
+  if (!next || parts.includes(next)) return existing;
+  return [...parts, next].join(", ");
+}
+
 export default function Dashboard({ userEmail }: { userEmail: string }) {
   const supabase = useMemo(() => createClient(), []);
   const [loading, setLoading] = useState(true);
@@ -240,9 +247,20 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
   // ── Tickets ──
   async function addTicket(draft: { type: string; requester: string; qty: number; note: string }) {
     if (!settings) return;
+    const existing = tickets.find((t) => t.type.trim().toLowerCase() === draft.type.trim().toLowerCase());
     try {
-      const t = await data.createTicket(supabase, settings.user_id, draft);
-      setTickets((prev) => [...prev, t]);
+      if (existing) {
+        const patch = {
+          qty: existing.qty + draft.qty,
+          requester: mergeField(existing.requester, draft.requester),
+          note: mergeField(existing.note, draft.note),
+        };
+        await data.updateTicket(supabase, existing.id, patch);
+        setTickets((prev) => prev.map((t) => (t.id === existing.id ? { ...t, ...patch } : t)));
+      } else {
+        const t = await data.createTicket(supabase, settings.user_id, draft);
+        setTickets((prev) => [...prev, t]);
+      }
     } catch (e) {
       alertErr(e);
     }

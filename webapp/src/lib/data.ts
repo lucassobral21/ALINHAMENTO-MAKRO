@@ -160,6 +160,15 @@ export async function createTicket(
   return must(res);
 }
 
+export async function updateTicket(
+  supabase: SupabaseClient,
+  id: string,
+  patch: Partial<Pick<Ticket, "qty" | "requester" | "note">>
+): Promise<void> {
+  const res = await supabase.from("tickets").update(patch).eq("id", id);
+  if (res.error) throw new Error(res.error.message);
+}
+
 export async function deleteTicket(supabase: SupabaseClient, id: string): Promise<void> {
   const res = await supabase.from("tickets").delete().eq("id", id);
   if (res.error) throw new Error(res.error.message);
