@@ -83,16 +83,6 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
       alertErr(e);
     }
   }
-  async function onReportNameBlur(name: string) {
-    if (!settings || name === settings.report_name) return;
-    setSettings({ ...settings, report_name: name });
-    try {
-      await data.updateAppSettings(supabase, settings.user_id, { report_name: name });
-    } catch (e) {
-      alertErr(e);
-    }
-  }
-
   // ── Projects ──
   async function addProject() {
     if (!settings) return;
@@ -412,13 +402,7 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
               <div style={{ fontSize: 11, color: "#6B7280", fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 4 }}>
                 Seu nome (aparece no relatório)
               </div>
-              <input
-                className="ds-input"
-                defaultValue={settings.report_name}
-                onBlur={(e) => onReportNameBlur(e.target.value)}
-                placeholder="Ex: Victor Lucas Rabelo Sobral"
-                style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A", width: "100%" }}
-              />
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A" }}>{settings.report_name}</div>
             </div>
             <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
               <button className="btn-secondary" onClick={exportJson}>
