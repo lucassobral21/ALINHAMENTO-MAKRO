@@ -398,12 +398,12 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
     reportProjects = historyEntry.snapshot.projects.map((p) => buildReportProject(p, p.demands, historyEntry.week_start));
     reportCsm = buildCsmSummary(historyEntry.snapshot.tickets);
     reportName = historyEntry.report_name;
-    reportDateStr = historyEntry.date_str;
+    reportDateStr = `${fmtBR(historyEntry.week_start)} - ${historyEntry.date_str}`;
   } else {
     reportProjects = projects.map((p) => buildReportProject(p, p.demands, settings.week_start));
     reportCsm = buildCsmSummary(tickets);
     reportName = settings.report_name;
-    reportDateStr = fmtBR(settings.week_end);
+    reportDateStr = `${fmtBR(settings.week_start)} - ${fmtBR(settings.week_end)}`;
   }
 
   return (
