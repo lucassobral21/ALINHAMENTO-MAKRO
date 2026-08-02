@@ -413,10 +413,11 @@ export default function Dashboard({ userEmail }: { userEmail: string }) {
                 Seu nome (aparece no relatório)
               </div>
               <input
-                className="ds-input-ghost"
+                className="ds-input"
                 defaultValue={settings.report_name}
                 onBlur={(e) => onReportNameBlur(e.target.value)}
-                style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A", width: "100%", padding: "6px 0" }}
+                placeholder="Ex: Victor Lucas Rabelo Sobral"
+                style={{ fontSize: 16, fontWeight: 700, color: "#1A1A1A", width: "100%" }}
               />
             </div>
             <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
