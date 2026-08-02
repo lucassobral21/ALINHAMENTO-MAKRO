@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="./doc-page.js"></script>
+<script src="./image-slot.js"></script>
+<style>body { margin: 0; } input, select, textarea, button { font-family: inherit; } input:focus, select:focus, textarea:focus { outline: none; } @media print { .no-print { display: none !important; } }</style>
+</helmet>
+<div style="min-height:100vh;background:#FAFAFA;font-family:'Inter',system-ui,sans-serif;color:#1A1A1A">
+  <div class="no-print" style="position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:#fff;border-bottom:1px solid #E5E7EB">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-weight:700;font-size:16px;letter-spacing:-.01em">Alinhamento Semanal</div>
+      <div style="font-size:12px;color:#2C3E66;font-weight:600;background:#EEF1F7;padding:4px 10px;border-radius:999px">{{ weekLabel }}</div>
+    </div>
+    <div style="display:flex;gap:28px">
+      <button onClick="{{ setViewPainel }}" style="{{ tabStylePainel }}">Painel</button>
+      <button onClick="{{ setViewRelatorio }}" style="{{ tabStyleRelatorio }}">Relatório / PDF</button>
+      <button onClick="{{ setViewHistorico }}" style="{{ tabStyleHistorico }}">Histórico</button>
+    </div>
+  </div>
+
+  <div class="no-print" style="padding:24px 32px 0;max-width:1100px;margin:0 auto">
+    <div style="font-size:22px;font-weight:700;letter-spacing:-.01em">{{ weekTitle }}</div>
+  </div>
+
+  <sc-if value="{{ isPainel }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:1100px;margin:0 auto;padding:32px 24px 80px">
+    <div style="{{ cardStyle }}display:flex;align-items:center;gap:16px;padding:20px 24px;margin-bottom:24px;flex-wrap:wrap">
+      <image-slot id="logo-company" shape="rounded" radius="12" placeholder="Logo empresa" style="width:64px;height:64px;flex-shrink:0"></image-slot>
+      <div style="flex:1;min-width:320px">
+        <div style="font-size:11px;color:#6B7280;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Seu nome (aparece no relatório)</div>
+        <input value="{{ reportName }}" onChange="{{ onReportNameChange }}" style="border:1px solid transparent;outline:none;background:transparent;font-size:16px;font-weight:700;color:#1A1A1A;width:100%;padding:6px 0;border-radius:8px" style-focus="border-color:#E5E7EB;background:#FAFAFA;padding:6px 10px" />
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onClick="{{ exportJson }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Exportar dados</button>
+        <label style="{{ btnSecondary }}display:inline-flex" style-hover="background:#F9FAFB">
+          Importar dados
+          <input type="file" accept="application/json" onChange="{{ importJson }}" style="display:none" />
+        </label>
+        <button onClick="{{ openCloseConfirm }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Fechar Semana</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="{{ kickerStyle }}">Projetos</div>
+      <button onClick="{{ addProject }}" style="{{ btnPrimary }}" style-hover="background:#243350">+ Novo projeto</button>
+    </div>
+
+    <sc-for list="{{ projectsView }}" as="p" hint-placeholder-count="1">
+      <div style="{{ cardStyle }}border-left:3px solid {{ p.color }};padding:24px;margin-bottom:16px">
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;width:56px">
+            <label style="width:56px;height:56px;border:1.5px dashed #E5E7EB;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#F9FAFB">
+              {{ p.logoImg }}
+              <sc-if value="{{ p.noLogo }}"><span style="font-size:8px;color:#9CA3AF;text-align:center;line-height:1.3">Enviar<br/>logo</span></sc-if>
+              <input type="file" accept="image/*" onChange="{{ p.onLogoFile }}" style="display:none" />
+            </label>
+            <button onClick="{{ p.onToggleGallery }}" style="font-size:10px;color:#2C3E66;background:none;border:none;cursor:pointer;padding:0;font-weight:600;text-align:left">Galeria</button>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input value="{{ p.name }}" onChange="{{ p.onNameChange }}" placeholder="Nome do projeto" style="border:1px solid transparent;outline:none;background:transparent;font-size:20px;font-weight:700;color:#1A1A1A;width:100%;border-radius:8px;padding:2px 0" style-focus="border-color:#E5E7EB;background:#FAFAFA;padding:2px 10px" />
+            <div style="display:flex;gap:16px;margin-top:8px;align-items:center">
+              <div style="font-size:12px;color:#6B7280;display:flex;align-items:center;gap:6px">Início <input type="date" value="{{ p.startDate }}" onChange="{{ p.onStartChange }}" style="{{ inputStyle }}padding:6px 8px;font-size:12px;width:auto" style-focus="{{ inputFocus }}" /></div>
+              <div style="font-size:12px;color:#6B7280;display:flex;align-items:center;gap:6px">Fim <input type="date" value="{{ p.endDate }}" onChange="{{ p.onEndChange }}" style="{{ inputStyle }}padding:6px 8px;font-size:12px;width:auto" style-focus="{{ inputFocus }}" /></div>
+            </div>
+          </div>
+          <input type="color" value="{{ p.color }}" onChange="{{ p.onColorChange }}" style="width:32px;height:32px;border:1px solid #E5E7EB;border-radius:8px;cursor:pointer;padding:0" />
+          <button onClick="{{ p.onDelete }}" aria-label="Remover projeto" style="{{ btnIcon }}" style-hover="background:#F9FAFB;color:#1A1A1A">✕</button>
+        </div>
+
+        <sc-if value="{{ p.galleryOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ cardStyle }}margin-top:12px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:600;color:#6B7280;margin-bottom:10px">Escolher logo salva</div>
+          <sc-if value="{{ p.galleryEmpty }}"><div style="font-size:12px;color:#9CA3AF">Nenhuma logo salva ainda — envie uma para começar sua galeria.</div></sc-if>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <sc-for list="{{ p.galleryThumbs }}" as="g" hint-placeholder-count="0">
+              <div onClick="{{ g.onPick }}" style="position:relative;width:64px;cursor:pointer;text-align:center">
+                <div style="width:64px;height:64px;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center">
+                  {{ g.thumbImg }}
+                </div>
+                <div style="font-size:10px;color:#6B7280;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ g.name }}</div>
+                <button onClick="{{ g.onRemove }}" title="Remover da galeria" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#fff;border:1px solid #E5E7EB;color:#6B7280;font-size:10px;cursor:pointer;line-height:1;padding:0">✕</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <div style="display:flex;align-items:center;gap:24px;margin:16px 0;padding:14px 16px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:#6B7280;font-weight:600">% segunda</span>
+            <input type="number" min="0" max="100" value="{{ p.mondayPct }}" onChange="{{ p.onMondayPctChange }}" style="{{ inputStyle }}width:60px;padding:6px 8px;font-size:12px" style-focus="{{ inputFocus }}" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;color:#6B7280;font-weight:600">% sexta</span>
+            <input type="number" min="0" max="100" value="{{ p.fridayPct }}" onChange="{{ p.onFridayPctChange }}" style="{{ inputStyle }}width:60px;padding:6px 8px;font-size:12px" style-focus="{{ inputFocus }}" />
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:22px">
+              <div style="width:5px;height:8px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:13px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:18px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:22px;background:{{ p.trendColor }};border-radius:1px"></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:{{ p.trendColor }}">{{ p.trendLabel }}</div>
+          </div>
+        </div>
+
+        <div style="margin:0 0 16px">
+          <div style="{{ kickerStyle }}margin-bottom:6px">Observações gerais</div>
+          <textarea value="{{ p.generalNotes }}" onChange="{{ p.onGeneralNotesChange }}" placeholder="Contexto sobre o andamento da semana (opcional)" rows="2" style="{{ inputStyle }}width:100%;padding:10px 12px;font-size:13px;color:#1A1A1A;resize:vertical;font-family:inherit;box-sizing:border-box" style-focus="{{ inputFocus }}"></textarea>
+        </div>
+
+        <div style="{{ kickerStyle }}margin:20px 0 10px">Principais demandas</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          <sc-for list="{{ p.demandsView }}" as="d" hint-placeholder-count="3">
+            <div style="{{ cardStyle }}border-left:3px solid {{ d.borderColor }};padding:14px 16px">
+              <input value="{{ d.type }}" onChange="{{ d.onTypeChange }}" style="border:none;outline:none;background:transparent;font-size:12px;font-weight:700;letter-spacing:.03em;color:#1A1A1A;text-transform:uppercase;width:100%;margin-bottom:8px;padding:0" />
+              <input value="{{ d.collaborator }}" onChange="{{ d.onCollabChange }}" placeholder="Colaborador" style="border:none;outline:none;background:transparent;font-size:13px;color:#1A1A1A;width:100%;margin-bottom:2px;padding:0" />
+              <input value="{{ d.role }}" onChange="{{ d.onRoleChange }}" placeholder="Função" style="border:none;outline:none;background:transparent;font-size:12px;color:#6B7280;width:100%;margin-bottom:2px;padding:0" />
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                <span style="font-size:10px;color:#9CA3AF">Solicitado</span>
+                <input type="date" value="{{ d.date }}" onChange="{{ d.onDateChange }}" style="border:none;outline:none;background:transparent;font-size:11px;color:#6B7280;flex:1;padding:0" />
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                <span style="font-size:10px;color:#9CA3AF">Liberado</span>
+                <input type="date" value="{{ d.releaseDate }}" onChange="{{ d.onReleaseDateChange }}" style="border:none;outline:none;background:transparent;font-size:11px;color:#6B7280;flex:1;padding:0" />
+              </div>
+              <textarea value="{{ d.situation }}" onChange="{{ d.onSituationChange }}" placeholder="Situação" rows="2" style="border:none;outline:none;background:transparent;font-size:12px;color:#1A1A1A;width:100%;resize:none;font-family:inherit;margin-bottom:6px;padding:0"></textarea>
+              <textarea value="{{ d.observation }}" onChange="{{ d.onObservationChange }}" placeholder="Observação (opcional)" rows="2" style="border:1px dashed #E5E7EB;outline:none;background:#F9FAFB;font-size:11px;color:#6B7280;width:100%;resize:none;font-family:inherit;margin-bottom:10px;padding:6px;border-radius:6px"></textarea>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <select value="{{ d.status }}" onChange="{{ d.onStatusChange }}" style="background:{{ d.pillBg }};color:{{ d.pillText }};border:none;border-radius:999px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer">
+                  <option value="verde">Concluído</option>
+                  <option value="amarelo">Em andamento</option>
+                  <option value="vermelho">Atenção</option>
+                </select>
+                <button onClick="{{ d.onDelete }}" style="{{ btnGhost }}" style-hover="background:#F3F4F6;color:#1A1A1A">remover</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px">
+          <input list="tiposDemanda" value="{{ p.draft.type }}" onChange="{{ p.onDraftType }}" placeholder="Tipo" style="{{ inputStyle }}{{ inputSm }}width:110px" style-focus="{{ inputFocus }}" />
+          <input value="{{ p.draft.collaborator }}" onChange="{{ p.onDraftCollab }}" placeholder="Colaborador" style="{{ inputStyle }}{{ inputSm }}width:130px" style-focus="{{ inputFocus }}" />
+          <input value="{{ p.draft.role }}" onChange="{{ p.onDraftRole }}" placeholder="Função" style="{{ inputStyle }}{{ inputSm }}width:110px" style-focus="{{ inputFocus }}" />
+          <input type="date" value="{{ p.draft.date }}" onChange="{{ p.onDraftDate }}" style="{{ inputStyle }}{{ inputSm }}" style-focus="{{ inputFocus }}" />
+          <input type="date" title="Data de liberação (opcional)" value="{{ p.draft.releaseDate }}" onChange="{{ p.onDraftReleaseDate }}" style="{{ inputStyle }}{{ inputSm }}" style-focus="{{ inputFocus }}" />
+          <input value="{{ p.draft.situation }}" onChange="{{ p.onDraftSituation }}" placeholder="Situação" style="{{ inputStyle }}{{ inputSm }}flex:1;min-width:140px" style-focus="{{ inputFocus }}" />
+          <input value="{{ p.draft.observation }}" onChange="{{ p.onDraftObservation }}" placeholder="Observação (opcional)" style="{{ inputStyle }}{{ inputSm }}flex:1;min-width:140px" style-focus="{{ inputFocus }}" />
+          <select value="{{ p.draft.status }}" onChange="{{ p.onDraftStatus }}" style="{{ inputStyle }}{{ inputSm }}" style-focus="{{ inputFocus }}">
+            <option value="vermelho">Atenção</option>
+            <option value="amarelo">Em andamento</option>
+            <option value="verde">Concluído</option>
+          </select>
+          <button onClick="{{ p.onAddDemand }}" style="{{ btnPrimary }}" style-hover="background:#243350">+ Adicionar</button>
+        </div>
+      </div>
+    </sc-for>
+
+    <datalist id="tiposDemanda">
+      <option value="Mobilização" />
+      <option value="Documentação" />
+      <option value="Treinamento" />
+    </datalist>
+
+    <div style="{{ cardStyle }}margin-top:8px;padding:24px">
+      <div style="{{ kickerStyle }}margin-bottom:10px">Chamados CSM</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div style="width:28px;height:28px;border-radius:50%;background:#16A34A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0">✓</div>
+        <div style="font-size:32px;font-weight:800;color:#16A34A;letter-spacing:-.01em">{{ csmTotal }} chamados solucionados na semana</div>
+      </div>
+      <div style="font-size:12.5px;color:#6B7280;margin-bottom:6px">{{ csmBreakdownStr }}</div>
+      <sc-if value="{{ csmHighlight }}" hint-placeholder-val="{{ false }}"><div style="font-size:12.5px;color:#166534;font-weight:700;margin-bottom:18px">★ {{ csmHighlight }}</div></sc-if>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <sc-for list="{{ ticketsView }}" as="t" hint-placeholder-count="1">
+          <div style="{{ cardStyle }}border-left:3px solid #2C3E66;padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="font-size:16px">{{ t.icon }}</span>
+              <span style="font-size:12px;font-weight:700;letter-spacing:.03em;color:#1A1A1A;text-transform:uppercase">{{ t.type }}</span>
+            </div>
+            <div style="font-size:13px;color:#1A1A1A;margin-bottom:2px">{{ t.requester }}</div>
+            <div style="font-size:12px;color:#6B7280;margin-bottom:2px">Quantidade: {{ t.qty }}</div>
+            <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:#6B7280;margin-bottom:8px">{{ t.note }}</div></sc-if>
+            <div style="text-align:right"><button onClick="{{ t.onDelete }}" style="{{ btnGhost }}" style-hover="background:#F3F4F6;color:#1A1A1A">remover</button></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px">
+        <input list="tiposChamado" value="{{ ticketDraft.type }}" onChange="{{ onTicketType }}" placeholder="Tipo" style="{{ inputStyle }}{{ inputSm }}width:170px" style-focus="{{ inputFocus }}" />
+        <input value="{{ ticketDraft.requester }}" onChange="{{ onTicketRequester }}" placeholder="Solicitante / setor" style="{{ inputStyle }}{{ inputSm }}width:150px" style-focus="{{ inputFocus }}" />
+        <input type="number" min="1" value="{{ ticketDraft.qty }}" onChange="{{ onTicketQty }}" placeholder="Qtd" style="{{ inputStyle }}{{ inputSm }}width:70px" style-focus="{{ inputFocus }}" />
+        <input value="{{ ticketDraft.note }}" onChange="{{ onTicketNote }}" placeholder="Observação" style="{{ inputStyle }}{{ inputSm }}flex:1;min-width:140px" style-focus="{{ inputFocus }}" />
+        <button onClick="{{ addTicket }}" style="{{ btnPrimary }}" style-hover="background:#243350">+ Registrar</button>
+      </div>
+      <datalist id="tiposChamado">
+        <option value="Mobilização" />
+        <option value="Solicitação de documentos" />
+      </datalist>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isRelatorio }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:900px;margin:0 auto;padding:24px 24px">
+    <div class="no-print" style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:16px">
+      <sc-if value="{{ viewingHistory }}"><button onClick="{{ backToLive }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Voltar à semana atual</button></sc-if>
+      <button onClick="{{ exportPdf }}" style="{{ btnPrimary }}" style-hover="background:#243350">Exportar PDF</button>
+      <sc-if value="{{ notViewingHistory }}"><button onClick="{{ openCloseConfirm }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Fechar semana e arquivar</button></sc-if>
+    </div>
+    <style>doc-page:not(:defined){visibility:hidden}</style>
+    <doc-page size="{{ pdfSize }}" margin="0.55in" style="font-family:'Inter',system-ui,sans-serif;color:#1A1A1A">
+      <div style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #1A1A1A;padding-bottom:14px;margin-bottom:20px">
+        <div style="width:52px;height:52px;flex-shrink:0">
+          <image-slot id="logo-company" shape="rounded" radius="10" placeholder="Logo" style="width:52px;height:52px"></image-slot>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:20px;font-weight:800;letter-spacing:.01em">ALINHAMENTO SEMANAL DE DEMANDAS</div>
+          <div style="font-size:13px;font-weight:600;margin-top:4px">{{ reportData.reportName }}</div>
+          <div style="font-size:11px;color:#6B7280">{{ reportData.dateStr }}</div>
+        </div>
+      </div>
+
+      <sc-for list="{{ reportData.projects }}" as="p" hint-placeholder-count="1">
+        <div style="border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin-bottom:18px;break-inside:avoid">
+          <div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;color:#6B7280;margin-bottom:8px">PROJETOS</div>
+          <div style="display:flex;align-items:center;gap:12px;border-left:4px solid {{ p.color }};padding-left:12px;margin-bottom:10px">
+            <div style="width:44px;height:44px;flex-shrink:0;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+              {{ p.logoImg }}
+            </div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700">{{ p.name }}</div>
+              <div style="font-size:11px;color:#6B7280">Previsão de início: {{ p.startStr }} · Previsão de fim: {{ p.endStr }}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;border:1px solid #E5E7EB;border-radius:8px;padding:8px 12px;margin-bottom:12px">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:22px">
+              <div style="width:5px;height:8px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:13px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:18px;background:{{ p.trendColor }};border-radius:1px"></div>
+              <div style="width:5px;height:22px;background:{{ p.trendColor }};border-radius:1px"></div>
+            </div>
+            <div style="font-size:12.5px;font-weight:600;color:{{ p.trendColor }}">{{ p.trendLabel }}</div>
+          </div>
+
+          <sc-if value="{{ p.hasGeneralNotes }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#6B7280;margin-bottom:4px">OBSERVAÇÕES</div>
+            <div style="font-size:11.5px;color:#1A1A1A">{{ p.generalNotes }}</div>
+          </div>
+          </sc-if>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div style="border:1px solid #E5E7EB;border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;flex-shrink:0;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+                {{ p.logoImg }}
+              </div>
+              <div style="flex:1;font-size:11px;color:#6B7280">Segunda-feira<br/><b style="color:#1A1A1A">{{ p.mondayDateStr }}</b></div>
+              <div style="position:relative;width:46px;height:46px;border-radius:50%;flex-shrink:0;background:{{ p.mondayGaugeBg }}">
+                <div style="position:absolute;inset:5px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:{{ p.mondayColor }}">{{ p.mondayPctStr }}</div>
+              </div>
+            </div>
+            <div style="border:1px solid #E5E7EB;border-radius:8px;padding:10px;display:flex;align-items:center;gap:10px">
+              <div style="width:28px;height:28px;flex-shrink:0;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+                {{ p.logoImg }}
+              </div>
+              <div style="flex:1;font-size:11px;color:#6B7280">Sexta-feira<br/><b style="color:#1A1A1A">{{ p.fridayDateStr }}</b></div>
+              <div style="position:relative;width:46px;height:46px;border-radius:50%;flex-shrink:0;background:{{ p.fridayGaugeBg }}">
+                <div style="position:absolute;inset:5px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:{{ p.fridayColor }}">{{ p.fridayPctStr }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#6B7280;margin-bottom:8px">PRINCIPAIS DEMANDAS</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+            <sc-for list="{{ p.demandsView }}" as="d" hint-placeholder-count="3">
+              <div style="border:1px solid #E5E7EB;border-left:3px solid {{ d.borderColor }};border-radius:8px;padding:8px 10px;break-inside:avoid">
+                <div style="font-size:10.5px;font-weight:700;letter-spacing:.03em;margin-bottom:3px">{{ d.type }}</div>
+                <div style="font-size:10.5px">Colaborador: {{ d.collaborator }}</div>
+                <div style="font-size:10.5px;color:#6B7280">Função: {{ d.role }}</div>
+                <div style="font-size:10.5px;color:#6B7280">Solicitado: {{ d.dateStr }}</div>
+                <sc-if value="{{ d.hasRelease }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#6B7280">Liberado: {{ d.releaseDateStr }}</div></sc-if>
+                <div style="font-size:10.5px">Situação: {{ d.situation }}</div>
+                <sc-if value="{{ d.hasObservation }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#6B7280">Observação: {{ d.observation }}</div></sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+
+      <div style="border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;break-inside:avoid">
+        <div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;color:#6B7280;margin-bottom:10px">CHAMADOS CSM</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+          <div style="width:20px;height:20px;border-radius:50%;background:#16A34A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">✓</div>
+          <div style="font-size:22px;font-weight:800;color:#16A34A;letter-spacing:-.01em">{{ reportData.csmTotal }} chamados solucionados na semana</div>
+        </div>
+        <div style="font-size:11.5px;color:#6B7280;margin-bottom:4px">{{ reportData.csmBreakdownStr }}</div>
+        <sc-if value="{{ reportData.csmHighlight }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:#166534;font-weight:700;margin-bottom:12px">★ {{ reportData.csmHighlight }}</div></sc-if>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <sc-for list="{{ reportData.ticketsView }}" as="t" hint-placeholder-count="1">
+            <div style="border:1px solid #E5E7EB;border-left:3px solid #2C3E66;border-radius:8px;padding:8px 10px;break-inside:avoid">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                <span style="font-size:12px">{{ t.icon }}</span>
+                <span style="font-size:10.5px;font-weight:700;letter-spacing:.03em">{{ t.type }}</span>
+              </div>
+              <div style="font-size:10.5px">{{ t.requester }}</div>
+              <div style="font-size:10.5px;color:#6B7280">Quantidade: {{ t.qty }}</div>
+              <sc-if value="{{ t.hasNote }}" hint-placeholder-val="{{ false }}"><div style="font-size:10.5px;color:#6B7280">{{ t.note }}</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </doc-page>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isHistorico }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:700px;margin:0 auto;padding:32px 24px">
+    <div style="{{ kickerStyle }}margin-bottom:16px">Semanas arquivadas</div>
+    <sc-if value="{{ noHistory }}"><div style="color:#6B7280;font-size:13px">Nenhuma semana arquivada ainda.</div></sc-if>
+    <sc-for list="{{ historyView }}" as="h" hint-placeholder-count="1">
+      <div style="{{ cardStyle }}display:flex;align-items:center;justify-content:space-between;padding:16px 18px;margin-bottom:12px">
+        <div>
+          <div style="font-weight:600;font-size:13px">{{ h.weekLabel }}</div>
+          <div style="font-size:11px;color:#6B7280">Arquivada em {{ h.closedAtStr }}</div>
+        </div>
+        <button onClick="{{ h.onView }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Ver relatório</button>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ showCloseConfirm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000">
+      <div style="background:#fff;border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,0.18);padding:28px;max-width:420px;width:90%">
+        <div style="font-size:17px;font-weight:700;color:#1A1A1A;margin-bottom:10px">Você deseja realmente fechar essa semana?</div>
+        <div style="font-size:13px;color:#6B7280;line-height:1.5;margin-bottom:24px">Todas as demandas e chamados lançados nesta semana serão removidos. Os projetos cadastrados serão mantidos, e um registro desta semana ficará salvo no Histórico.</div>
+        <div style="display:flex;justify-content:flex-end;gap:10px">
+          <button onClick="{{ cancelCloseConfirm }}" style="{{ btnSecondary }}" style-hover="background:#F9FAFB">Cancelar</button>
+          <button onClick="{{ confirmCloseWeek }}" style="background:#DC2626;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#B91C1C">Sim, fechar semana</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;pdfSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;a4&quot;,&quot;options&quot;:[&quot;a4&quot;,&quot;letter&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;gaugeLowThreshold&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:35,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;%&quot;,&quot;section&quot;:&quot;Indicadores&quot;},&quot;gaugeHighThreshold&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:70,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;%&quot;,&quot;section&quot;:&quot;Indicadores&quot;}}">
+const STATUS_COLOR = { verde: '#16a34a', amarelo: '#d97706', vermelho: '#dc2626' };
+const STATUS_PILL = {
+  verde: { bg: '#DCFCE7', text: '#166534' },
+  amarelo: { bg: '#FEF3C7', text: '#92400E' },
+  vermelho: { bg: '#FEE2E2', text: '#991B1B' }
+};
+const STORAGE_KEY = 'weekly-demands-app-v1';
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function fmtBR(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function mondayOf(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+function toISO(d) { return d.toISOString().slice(0, 10); }
+function addDays(iso, n) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return toISO(d);
+}
+function emptyDraft() { return { type: '', collaborator: '', role: '', date: toISO(new Date()), situation: '', status: 'amarelo', releaseDate: '', observation: '' }; }
+function emptyTicketDraft() { return { type: '', requester: '', qty: '', note: '' }; }
+function clampPct(n) { n = Number(n); if (isNaN(n)) return 0; return Math.max(0, Math.min(100, Math.round(n))); }
+function ticketIcon(type) {
+  const t = (type || '').toLowerCase();
+  if (t.includes('mobiliza')) return '👤';
+  if (t.includes('documento')) return '📄';
+  return '🎫';
+}
+function fileToDataURL(file, cb) {
+  const reader = new FileReader();
+  reader.onload = () => cb(reader.result);
+  reader.readAsDataURL(file);
+}
+function safeImg(src) {
+  return src ? React.createElement('img', { src, style: { width: '100%', height: '100%', objectFit: 'contain' } }) : null;
+}
+
+class Component extends DCLogic {
+  state = {
+    view: 'painel',
+    reportName: 'VICTOR LUCAS RABELO SOBRAL',
+    weekStart: toISO(mondayOf(new Date())),
+    projects: [
+      { id: 'p-nordex', name: 'Nordex', color: '#2C3E66', startDate: '', endDate: '', mondayPct: 0, fridayPct: 0, generalNotes: '', demands: [] },
+      { id: 'p-rnest', name: 'RNEST', color: '#2C3E66', startDate: '', endDate: '', mondayPct: 0, fridayPct: 0, generalNotes: '', demands: [] }
+    ],
+    csmTickets: [],
+    demandDrafts: {},
+    ticketDraft: emptyTicketDraft(),
+    history: [],
+    historyViewId: null,
+    logoGallery: [],
+    galleryOpenFor: null,
+    showCloseConfirm: false
+  };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) this.setState(JSON.parse(raw));
+    } catch (e) {}
+  }
+
+  save(patch) {
+    this.setState(patch, () => {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch (e) {}
+    });
+  }
+
+  onReportNameChange(e) { this.save({ reportName: e.target.value }); }
+
+  addProject() {
+    const p = { id: uid(), name: 'Novo projeto', color: '#2C3E66', startDate: '', endDate: '', mondayPct: 0, fridayPct: 0, generalNotes: '', demands: [] };
+    this.save({ projects: [...this.state.projects, p] });
+  }
+  updateProject(id, patch) {
+    this.save({ projects: this.state.projects.map(p => p.id === id ? { ...p, ...patch } : p) });
+  }
+  deleteProject(id) {
+    this.save({ projects: this.state.projects.filter(p => p.id !== id) });
+  }
+
+  addOrUpdateGalleryLogo(name, dataUrl) {
+    if (!name || !name.trim()) return;
+    const key = name.trim();
+    const existing = this.state.logoGallery.find(g => g.name.toLowerCase() === key.toLowerCase());
+    const logoGallery = existing
+      ? this.state.logoGallery.map(g => g === existing ? { ...g, dataUrl } : g)
+      : [...this.state.logoGallery, { id: uid(), name: key, dataUrl }];
+    this.save({ logoGallery });
+  }
+  onProjectLogoFile(pid, e) {
+    const f = e.target.files[0]; if (!f) return;
+    fileToDataURL(f, (url) => {
+      const p = this.state.projects.find(x => x.id === pid);
+      this.updateProject(pid, { logo: url });
+      this.addOrUpdateGalleryLogo(p ? p.name : '', url);
+    });
+  }
+  onProjectNameChange(pid, name) {
+    const p = this.state.projects.find(x => x.id === pid);
+    const patch = { name };
+    if (p && !p.logo) {
+      const match = this.state.logoGallery.find(g => g.name.toLowerCase() === name.trim().toLowerCase());
+      if (match) patch.logo = match.dataUrl;
+    }
+    this.updateProject(pid, patch);
+  }
+  toggleGallery(pid) {
+    this.save({ galleryOpenFor: this.state.galleryOpenFor === pid ? null : pid });
+  }
+  pickGalleryLogo(pid, dataUrl) {
+    this.updateProject(pid, { logo: dataUrl });
+    this.save({ galleryOpenFor: null });
+  }
+  removeGalleryLogo(id) {
+    this.save({ logoGallery: this.state.logoGallery.filter(g => g.id !== id) });
+  }
+  getDraft(pid) { return this.state.demandDrafts[pid] || emptyDraft(); }
+  setDraft(pid, patch) {
+    this.save({ demandDrafts: { ...this.state.demandDrafts, [pid]: { ...this.getDraft(pid), ...patch } } });
+  }
+  addDemand(pid) {
+    const draft = this.getDraft(pid);
+    if (!draft.type && !draft.collaborator) return;
+    const demand = { id: uid(), ...draft, releaseDate: draft.releaseDate || '', observation: draft.observation || '' };
+    this.save({
+      projects: this.state.projects.map(p => p.id === pid ? { ...p, demands: [...p.demands, demand] } : p),
+      demandDrafts: { ...this.state.demandDrafts, [pid]: emptyDraft() }
+    });
+  }
+  updateDemand(pid, did, patch) {
+    this.save({
+      projects: this.state.projects.map(p => p.id === pid
+        ? { ...p, demands: p.demands.map(d => d.id === did ? { ...d, ...patch } : d) }
+        : p)
+    });
+  }
+  deleteDemand(pid, did) {
+    this.save({
+      projects: this.state.projects.map(p => p.id === pid ? { ...p, demands: p.demands.filter(d => d.id !== did) } : p)
+    });
+  }
+
+  setTicketDraft(patch) { this.save({ ticketDraft: { ...this.state.ticketDraft, ...patch } }); }
+  addTicket() {
+    const d = this.state.ticketDraft;
+    if (!d.type) return;
+    const t = { id: uid(), type: d.type, requester: d.requester, qty: Number(d.qty) || 1, note: d.note, date: toISO(new Date()) };
+    this.save({ csmTickets: [...this.state.csmTickets, t], ticketDraft: emptyTicketDraft() });
+  }
+  deleteTicket(id) { this.save({ csmTickets: this.state.csmTickets.filter(t => t.id !== id) }); }
+
+  exportPdf() { window.print(); }
+
+  openCloseConfirm() { this.setState({ showCloseConfirm: true }); }
+  cancelCloseConfirm() { this.setState({ showCloseConfirm: false }); }
+
+  closeWeek() {
+    this.setState({ showCloseConfirm: false });
+    const weekStart = this.state.weekStart;
+    const fridayISO = addDays(weekStart, 4);
+    const projectsSnapshot = this.state.projects.map(p => ({ ...p }));
+    const entry = {
+      id: uid(),
+      weekLabel: `Semana de ${fmtBR(weekStart)} a ${fmtBR(fridayISO)}`,
+      closedAt: new Date().toISOString(),
+      reportName: this.state.reportName,
+      dateStr: fmtBR(fridayISO),
+      weekStart,
+      projects: projectsSnapshot,
+      csmTickets: this.state.csmTickets
+    };
+    const nextWeekStart = addDays(weekStart, 7);
+    this.save({
+      history: [entry, ...this.state.history],
+      projects: this.state.projects.map(p => ({ ...p, demands: [], mondayPct: 0, fridayPct: 0, generalNotes: '' })),
+      csmTickets: [],
+      weekStart: nextWeekStart,
+      view: 'historico',
+      historyViewId: null
+    });
+  }
+
+  exportJson() {
+    const blob = new Blob([JSON.stringify(this.state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'alinhamento-semanal-dados.json';
+    a.click();
+  }
+  importJson(e) {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { this.save(JSON.parse(reader.result)); } catch (err) { window.alert('Arquivo inválido.'); }
+    };
+    reader.readAsText(f);
+  }
+
+  gaugeColor(pct) {
+    const low = this.props.gaugeLowThreshold ?? 35, high = this.props.gaugeHighThreshold ?? 70;
+    if (pct >= high) return STATUS_COLOR.verde;
+    if (pct >= low) return STATUS_COLOR.amarelo;
+    return STATUS_COLOR.vermelho;
+  }
+  gaugeBg(pct, color) { return `conic-gradient(${color} ${pct * 3.6}deg, #e5e7eb 0deg)`; }
+
+  buildDemandsView(project, editable) {
+    return project.demands.map(d => {
+      const borderColor = STATUS_COLOR[d.status];
+      const pill = STATUS_PILL[d.status] || STATUS_PILL.amarelo;
+      const base = {
+        id: d.id, type: d.type, collaborator: d.collaborator, role: d.role,
+        date: d.date, dateStr: fmtBR(d.date), situation: d.situation, status: d.status, borderColor,
+        releaseDate: d.releaseDate || '', releaseDateStr: d.releaseDate ? fmtBR(d.releaseDate) : '',
+        hasRelease: !!d.releaseDate,
+        observation: d.observation || '', hasObservation: !!(d.observation && d.observation.trim())
+      };
+      if (!editable) return base;
+      return {
+        ...base,
+        pillBg: pill.bg, pillText: pill.text,
+        onTypeChange: (e) => this.updateDemand(project.id, d.id, { type: e.target.value }),
+        onCollabChange: (e) => this.updateDemand(project.id, d.id, { collaborator: e.target.value }),
+        onRoleChange: (e) => this.updateDemand(project.id, d.id, { role: e.target.value }),
+        onDateChange: (e) => this.updateDemand(project.id, d.id, { date: e.target.value }),
+        onReleaseDateChange: (e) => this.updateDemand(project.id, d.id, { releaseDate: e.target.value }),
+        onObservationChange: (e) => this.updateDemand(project.id, d.id, { observation: e.target.value }),
+        onSituationChange: (e) => this.updateDemand(project.id, d.id, { situation: e.target.value }),
+        onStatusChange: (e) => this.updateDemand(project.id, d.id, { status: e.target.value }),
+        onDelete: () => this.deleteDemand(project.id, d.id)
+      };
+    });
+  }
+
+  buildProjectReport(p, weekStart) {
+    const fridayISO = addDays(weekStart, 4);
+    const mondayPct = p.mondayPct ?? 0, fridayPct = p.fridayPct ?? 0;
+    const progression = fridayPct - mondayPct;
+    const trendColor = progression >= 0 ? '#16a34a' : '#dc2626';
+    const trendLabel = progression >= 0
+      ? `Progressão positiva de ${progression}% na semana`
+      : `Retração de ${Math.abs(progression)}% na semana`;
+    const mColor = this.gaugeColor(mondayPct), fColor = this.gaugeColor(fridayPct);
+    return {
+      id: p.id, name: p.name, color: p.color, logo: p.logo, logoImg: safeImg(p.logo),
+      startStr: fmtBR(p.startDate), endStr: fmtBR(p.endDate),
+      mondayDateStr: fmtBR(weekStart), fridayDateStr: fmtBR(fridayISO),
+      mondayPctStr: mondayPct + '%', fridayPctStr: fridayPct + '%',
+      mondayColor: mColor, fridayColor: fColor,
+      mondayGaugeBg: this.gaugeBg(mondayPct, mColor), fridayGaugeBg: this.gaugeBg(fridayPct, fColor),
+      trendColor, trendLabel,
+      generalNotes: p.generalNotes || '', hasGeneralNotes: !!(p.generalNotes && p.generalNotes.trim()),
+      demandsView: this.buildDemandsView(p, false)
+    };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const isPainel = st.view === 'painel', isRelatorio = st.view === 'relatorio', isHistorico = st.view === 'historico';
+    const tabBase = 'background:none;border:none;padding:6px 2px;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;';
+    const tabOn = tabBase + 'color:#2C3E66;border-bottom-color:#2C3E66;';
+    const tabOff = tabBase + 'color:#6B7280;';
+    const cardStyle = 'background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);';
+    const kickerStyle = 'font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6B7280;';
+    const btnPrimary = 'background:#2C3E66;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.08);';
+    const btnSecondary = 'background:#fff;color:#1A1A1A;border:1px solid #E5E7EB;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;';
+    const btnGhost = 'background:transparent;color:#6B7280;border:none;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;';
+    const btnIcon = 'background:#fff;color:#6B7280;border:1px solid #E5E7EB;border-radius:8px;width:34px;height:34px;font-size:14px;cursor:pointer;';
+    const inputStyle = 'background:#fff;border:1px solid #E5E7EB;border-radius:8px;color:#1A1A1A;';
+    const inputFocus = 'border-color:#2C3E66;box-shadow:0 0 0 3px rgba(44,62,102,0.15);';
+    const inputSm = 'padding:10px 12px;font-size:13px;';
+
+    const fridayISO = addDays(st.weekStart, 4);
+    const weekLabel = `Semana de ${fmtBR(st.weekStart)} a ${fmtBR(fridayISO)}`;
+    const weekTitle = `${fmtBR(st.weekStart)} - ${fmtBR(fridayISO)}`;
+
+    const projectsView = st.projects.map(p => {
+      const mondayPct = p.mondayPct ?? 0, fridayPct = p.fridayPct ?? 0;
+      const progression = fridayPct - mondayPct;
+      const trendColor = progression >= 0 ? '#16a34a' : '#dc2626';
+      const trendLabel = progression >= 0
+        ? `Progressão positiva de ${progression}% na semana`
+        : `Retração de ${Math.abs(progression)}% na semana`;
+      const draft = this.getDraft(p.id);
+      const galleryOpen = st.galleryOpenFor === p.id;
+      const galleryThumbs = st.logoGallery.map(g => ({
+        id: g.id, name: g.name, dataUrl: g.dataUrl, thumbImg: safeImg(g.dataUrl),
+        onPick: () => this.pickGalleryLogo(p.id, g.dataUrl),
+        onRemove: (e) => { e.stopPropagation(); this.removeGalleryLogo(g.id); }
+      }));
+      return {
+        id: p.id, name: p.name, color: p.color, logo: p.logo, logoImg: safeImg(p.logo), noLogo: !p.logo,
+        startDate: p.startDate, endDate: p.endDate,
+        mondayPct, fridayPct, trendColor, trendLabel,
+        generalNotes: p.generalNotes || '',
+        demandsView: this.buildDemandsView(p, true),
+        draft,
+        onGeneralNotesChange: (e) => this.updateProject(p.id, { generalNotes: e.target.value }),
+        galleryOpen, galleryThumbs, galleryEmpty: galleryThumbs.length === 0,
+        onLogoFile: (e) => this.onProjectLogoFile(p.id, e),
+        onToggleGallery: () => this.toggleGallery(p.id),
+        onNameChange: (e) => this.onProjectNameChange(p.id, e.target.value),
+        onColorChange: (e) => this.updateProject(p.id, { color: e.target.value }),
+        onStartChange: (e) => this.updateProject(p.id, { startDate: e.target.value }),
+        onEndChange: (e) => this.updateProject(p.id, { endDate: e.target.value }),
+        onMondayPctChange: (e) => this.updateProject(p.id, { mondayPct: clampPct(e.target.value) }),
+        onFridayPctChange: (e) => this.updateProject(p.id, { fridayPct: clampPct(e.target.value) }),
+        onDelete: () => this.deleteProject(p.id),
+        onDraftType: (e) => this.setDraft(p.id, { type: e.target.value }),
+        onDraftCollab: (e) => this.setDraft(p.id, { collaborator: e.target.value }),
+        onDraftRole: (e) => this.setDraft(p.id, { role: e.target.value }),
+        onDraftDate: (e) => this.setDraft(p.id, { date: e.target.value }),
+        onDraftSituation: (e) => this.setDraft(p.id, { situation: e.target.value }),
+        onDraftStatus: (e) => this.setDraft(p.id, { status: e.target.value }),
+        onDraftReleaseDate: (e) => this.setDraft(p.id, { releaseDate: e.target.value }),
+        onDraftObservation: (e) => this.setDraft(p.id, { observation: e.target.value }),
+        onAddDemand: () => this.addDemand(p.id)
+      };
+    });
+
+    const ticketsView = st.csmTickets.map(t => ({ ...t, icon: ticketIcon(t.type), hasNote: !!(t.note && t.note.trim()), onDelete: () => this.deleteTicket(t.id) }));
+    const csmTotal = st.csmTickets.reduce((s, t) => s + t.qty, 0);
+    const csmBreakdownMap = {};
+    st.csmTickets.forEach(t => { csmBreakdownMap[t.type] = (csmBreakdownMap[t.type] || 0) + t.qty; });
+    const csmBreakdownStr = Object.entries(csmBreakdownMap).map(([type, count]) => `${type}: ${count}`).join(' · ');
+    const csmBreakdownEntries = Object.entries(csmBreakdownMap);
+    let csmHighlight = '';
+    if (csmTotal > 0 && csmBreakdownEntries.length > 0) {
+      const top = csmBreakdownEntries.reduce((a, b) => b[1] > a[1] ? b : a);
+      const pct = Math.round((top[1] / csmTotal) * 100);
+      if (pct >= 50) csmHighlight = `${top[0]} representou ${pct}% dos chamados desta semana`;
+    }
+
+    const viewingHistory = !!st.historyViewId;
+    let reportData;
+    if (viewingHistory) {
+      const h = st.history.find(x => x.id === st.historyViewId);
+      const hTickets = h ? (h.csmTickets || []) : [];
+      const hBreakdownMap = {};
+      hTickets.forEach(t => { hBreakdownMap[t.type] = (hBreakdownMap[t.type] || 0) + t.qty; });
+      const hBreakdownStr = Object.entries(hBreakdownMap).map(([type, count]) => `${type}: ${count}`).join(' · ');
+      const hTotal = hTickets.reduce((s, t) => s + t.qty, 0);
+      const hEntries = Object.entries(hBreakdownMap);
+      let hHighlight = '';
+      if (hTotal > 0 && hEntries.length > 0) {
+        const top = hEntries.reduce((a, b) => b[1] > a[1] ? b : a);
+        const pct = Math.round((top[1] / hTotal) * 100);
+        if (pct >= 50) hHighlight = `${top[0]} representou ${pct}% dos chamados desta semana`;
+      }
+      reportData = h ? {
+        reportName: h.reportName, dateStr: h.dateStr,
+        projects: h.projects.map(p => this.buildProjectReport(p, h.weekStart)),
+        csmTotal: hTotal,
+        csmBreakdownStr: hBreakdownStr || 'Nenhum chamado registrado', csmHighlight: hHighlight,
+        ticketsView: hTickets.map(t => ({ ...t, icon: ticketIcon(t.type), hasNote: !!(t.note && t.note.trim()) }))
+      } : { reportName: '', dateStr: '', projects: [], csmTotal: 0, csmBreakdownStr: '', csmHighlight: '', ticketsView: [] };
+    } else {
+      reportData = {
+        reportName: st.reportName, dateStr: fmtBR(toISO(new Date())),
+        projects: st.projects.map(p => this.buildProjectReport(p, st.weekStart)),
+        csmTotal, csmBreakdownStr: csmBreakdownStr || 'Nenhum chamado registrado', csmHighlight,
+        ticketsView: st.csmTickets.map(t => ({ ...t, icon: ticketIcon(t.type), hasNote: !!(t.note && t.note.trim()) }))
+      };
+    }
+
+    const historyView = st.history.map(h => ({
+      id: h.id, weekLabel: h.weekLabel,
+      closedAtStr: new Date(h.closedAt).toLocaleString('pt-BR'),
+      onView: () => this.save({ historyViewId: h.id, view: 'relatorio' })
+    }));
+
+    return {
+      isPainel, isRelatorio, isHistorico,
+      weekLabel, weekTitle,
+      showCloseConfirm: st.showCloseConfirm,
+      openCloseConfirm: () => this.openCloseConfirm(),
+      cancelCloseConfirm: () => this.cancelCloseConfirm(),
+      tabStylePainel: isPainel ? tabOn : tabOff,
+      tabStyleRelatorio: isRelatorio ? tabOn : tabOff,
+      tabStyleHistorico: isHistorico ? tabOn : tabOff,
+      cardStyle, kickerStyle, btnPrimary, btnSecondary, btnGhost, btnIcon, inputStyle, inputFocus, inputSm,
+      setViewPainel: () => this.save({ view: 'painel' }),
+      setViewRelatorio: () => this.save({ view: 'relatorio', historyViewId: null }),
+      setViewHistorico: () => this.save({ view: 'historico' }),
+      reportName: st.reportName,
+      onReportNameChange: (e) => this.onReportNameChange(e),
+      addProject: () => this.addProject(),
+      projectsView,
+      ticketDraft: st.ticketDraft,
+      ticketsView, csmTotal, csmBreakdownStr: csmBreakdownStr || 'Nenhum chamado registrado', csmHighlight,
+      onTicketType: (e) => this.setTicketDraft({ type: e.target.value }),
+      onTicketRequester: (e) => this.setTicketDraft({ requester: e.target.value }),
+      onTicketQty: (e) => this.setTicketDraft({ qty: e.target.value }),
+      onTicketNote: (e) => this.setTicketDraft({ note: e.target.value }),
+      addTicket: () => this.addTicket(),
+      exportJson: () => this.exportJson(),
+      importJson: (e) => this.importJson(e),
+      viewingHistory, notViewingHistory: !viewingHistory,
+      backToLive: () => this.save({ historyViewId: null }),
+      exportPdf: () => this.exportPdf(),
+      closeWeek: () => this.openCloseConfirm(),
+      confirmCloseWeek: () => this.closeWeek(),
+      pdfSize: this.props.pdfSize ?? 'a4',
+      reportData,
+      historyView, noHistory: st.history.length === 0
+    };
+  }
+}
+</script>
+</body>
+</html>
